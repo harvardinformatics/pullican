@@ -85,7 +85,7 @@ def run(environ, resp):
             return txt
                  
             
-        
+        txt = 'OK'
     except Exception as e:
         txt = 'Error: %s\n%s' % (str(e),traceback.format_exc())
         logger.error(txt)
