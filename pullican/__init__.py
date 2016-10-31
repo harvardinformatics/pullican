@@ -78,7 +78,7 @@ def run(environ, resp):
         
         
         # Process the content with pelican
-        cmd = 'pelican {contentpath} -t {themepath} -o {outputpath}'.format(contentpath=contentpath,themepath=themepath,outputpath=outputpath)
+        cmd = 'pelican {contentpath} -t {themepath} -o {outputpath} -s {sourcepath}/publishconf.py'.format(sourcepath=sourcepath,contentpath=contentpath,themepath=themepath,outputpath=outputpath)
         proc = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         stdout,stderr = proc.communicate()
         if proc != 0:
