@@ -61,9 +61,11 @@ def run(environ, resp):
         proc = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         stdout,stderr = proc.communicate()
         if proc != 0:
-            txt = 'Error: Could not perform repository update with cmd %s: %s' % (cmd,stderr + stdout)
-            logger.error(txt)
-            return txt
+            # Report any non "Already up-to-date" errors
+            if not 'Already up-to-date' in stdout:
+                txt = 'Error: Could not perform repository update with cmd %s: %s' % (cmd,stderr + stdout)
+                logger.error(txt)
+                return txt
 
         # Check paths
         for pathname,pathvalue in {'PULLICAN_SOURCE_PATH' : sourcepath, 'PULLICAN_CONTENT_PATH' : contentpath, 'PULLICAN_OUTPUT_PATH' : outputpath, 'PULLICAN_THEME_PATH' : themepath}.iteritems():
