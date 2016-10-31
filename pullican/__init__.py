@@ -49,14 +49,6 @@ def run(environ, resp):
             logger.error(txt)
             return txt
         
-        # Check paths
-        for pathname,pathvalue in {'PULLICAN_SOURCE_PATH' : sourcepath, 'PULLICAN_CONTENT_PATH' : contentpath, 'PULLICAN_OUTPUT_PATH' : outputpath, 'PULLICAN_THEME_PATH' : themepath}.iteritems():
-            if not os.path.exists(pathvalue):
-                txt += '%s %s does not exist' % (pathname,pathvalue)
-        if txt != '':
-            logger.error(txt)
-            return txt + '\n'
-        
         # Check signature if provided
         if signature:
             if github_signature != signature:
@@ -72,6 +64,15 @@ def run(environ, resp):
             txt = 'Error: Could not perform repository update with cmd %s: %s' % (cmd,stderr + stdout)
             logger.error(txt)
             return txt
+
+        # Check paths
+        for pathname,pathvalue in {'PULLICAN_SOURCE_PATH' : sourcepath, 'PULLICAN_CONTENT_PATH' : contentpath, 'PULLICAN_OUTPUT_PATH' : outputpath, 'PULLICAN_THEME_PATH' : themepath}.iteritems():
+            if not os.path.exists(pathvalue):
+                txt += '%s %s does not exist' % (pathname,pathvalue)
+        if txt != '':
+            logger.error(txt)
+            return txt + '\n'
+        
         
         
         # Process the content with pelican
