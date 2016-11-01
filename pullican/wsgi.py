@@ -43,13 +43,7 @@ def application(environ, resp):
         contentpath = environ.get('PULLICAN_CONTENT_PATH',os.path.join([sourcepath,'content']))
         themepath   = environ.get('PULLICAN_THEME_PATH',os.path.join([sourcepath,'theme']))
         outputpath  = environ.get('PULLICAN_OUTPUT_PATH','/var/www/html')
-        signature   = environ.get('PULLICAN_SIGNATURE')
-        pythonpath  = environ.get('PYTHONPATH')
-        
-        if pythonpath:
-            if pythonpath not in sys.path:
-                sys.path.append(pythonpath)
-        
+        signature   = environ.get('PULLICAN_SIGNATURE')        
         
         if not sourcepath:
             txt = 'Error: PULLICAN_SOURCE_PATH environment variable must be set.\n'
@@ -82,7 +76,7 @@ def application(environ, resp):
         
         
         # Process the content with pelican
-        cmd = 'pelican {contentpath} -t {themepath} -o {outputpath} -s {sourcepath}/publishconf.py'.format(sourcepath=sourcepath,contentpath=contentpath,themepath=themepath,outputpath=outputpath)
+        cmd = 'PYTHONPATH={sourcepath} pelican {contentpath} -t {themepath} -o {outputpath} -s {sourcepath}/publishconf.py'.format(sourcepath=sourcepath,contentpath=contentpath,themepath=themepath,outputpath=outputpath)
         proc = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         stdout,stderr = proc.communicate()
         if proc.returncode != 0:
