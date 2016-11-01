@@ -11,9 +11,10 @@ By default, content will be in PULLICAN_SOURCE_PATH/content, theme is PULLICAN_S
 @license: GPL v2.0
 '''
 
-import os, traceback, subprocess, re, socket, sys
+import os, traceback, subprocess, re, socket
 import logging
 from logging.handlers import SMTPHandler
+import hmac, hashlib
 
 
 def application(environ, resp):
@@ -34,16 +35,16 @@ def application(environ, resp):
     resp("200 OK", [ ('Content-Type', 'text/plain') ])
     
     try:
-        github_event       = environ.get('X-GitHub-Event')
-        github_delivery    = environ.get('X-GitHub-Delivery')
-        github_signature   = environ.get('X-Hub-Signature')
+        github_event       = environ.get('HTTP_X_GITHUB_EVENT')
+        github_delivery    = environ.get('HTTP_X_GITHUB_DELIVERY')
+        github_signature   = environ.get('HTTP_X_HUB_SIGNATURE')
         
         
         sourcepath  = environ.get('PULLICAN_SOURCE_PATH')
         contentpath = environ.get('PULLICAN_CONTENT_PATH',os.path.join([sourcepath,'content']))
         themepath   = environ.get('PULLICAN_THEME_PATH',os.path.join([sourcepath,'theme']))
         outputpath  = environ.get('PULLICAN_OUTPUT_PATH','/var/www/html')
-        signature   = environ.get('PULLICAN_SIGNATURE')        
+        signaturekey   = environ.get('PULLICAN_SIGNATURE_KEY')        
         
         if not sourcepath:
             txt = 'Error: PULLICAN_SOURCE_PATH environment variable must be set.\n'
@@ -51,10 +52,13 @@ def application(environ, resp):
             return txt
         
         # Check signature if provided
-        if signature:
-            if github_signature != signature:
-                txt = 'Error: Github signature does not match the expected value.\n'
+        if signaturekey:
+            payload = environ.get('wsgi.input').read()
+            digest = 'sha1=' + hmac.new(signaturekey,payload,hashlib.sha1).hexdigest()
+            if github_signature != digest:
+                txt = 'Error: Github signature %s does not match the expected value: %s.\n' % (github_signature,digest)
                 logger.error(txt)
+                resp("403 Forbidden", [ ('Content-Type', 'text/plain') ])
                 return txt
             
         # Pull from the repository
@@ -89,5 +93,7 @@ def application(environ, resp):
     except Exception as e:
         txt = 'Error: %s\n%s' % (str(e),traceback.format_exc())
         logger.error(txt)
-        
+        resp("500 Internal Server Error", [ ('Content-Type', 'text/plain') ])
+        return txt
+
     return txt + '\n'
