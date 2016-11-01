@@ -11,7 +11,7 @@ By default, content will be in PULLICAN_SOURCE_PATH/content, theme is PULLICAN_S
 @license: GPL v2.0
 '''
 
-import os, traceback, subprocess, re, socket
+import os, traceback, subprocess, re, socket, sys
 import logging
 from logging.handlers import SMTPHandler
 
@@ -44,6 +44,11 @@ def application(environ, resp):
         themepath   = environ.get('PULLICAN_THEME_PATH',os.path.join([sourcepath,'theme']))
         outputpath  = environ.get('PULLICAN_OUTPUT_PATH','/var/www/html')
         signature   = environ.get('PULLICAN_SIGNATURE')
+        pythonpath  = environ.get('PYTHONPATH')
+        
+        if pythonpath:
+            if pythonpath not in sys.path:
+                sys.path.append(pythonpath)
         
         
         if not sourcepath:
