@@ -16,18 +16,20 @@ import logging
 from logging.handlers import SMTPHandler
 
 
-# Email logging setup
-SMTP_SERVER = os.environ.get('PULLICAN_SMTP_SERVER','rcsmtp.rc.fas.harvard.edu')
-ADMIN_EMAILS = os.environ.get('PULLICAN_ADMIN_EMAILS','akitzmiller@g.harvard.edu')
-ADMIN_EMAIL_LIST = re.split('\s*,\s*', ADMIN_EMAILS)
-
-logger = logging.getLogger()
-handler = SMTPHandler(SMTP_SERVER,'rchelp@fas.harvard.edu',ADMIN_EMAIL_LIST,'Pullican error on %s' % socket.gethostname())
-handler.setLevel(logging.INFO)
-logger.addHandler(handler)
-
-
 def application(environ, resp):
+    # Doing the usual environment variable handling in application, cause it's all in environ
+    
+    # Email logging setup
+    SMTP_SERVER = environ.get('PULLICAN_SMTP_SERVER','rcsmtp.rc.fas.harvard.edu')
+    ADMIN_EMAILS = environ.get('PULLICAN_ADMIN_EMAILS','akitzmiller@g.harvard.edu')
+    ADMIN_EMAIL_LIST = re.split('\s*,\s*', ADMIN_EMAILS)
+    
+    logger = logging.getLogger()
+    handler = SMTPHandler(SMTP_SERVER,'rchelp@fas.harvard.edu',ADMIN_EMAIL_LIST,'Pullican error on %s' % socket.gethostname())
+    handler.setLevel(logging.INFO)
+    logger.addHandler(handler)
+    
+    
     txt = ''
     resp("200 OK", [ ('Content-Type', 'text/plain') ])
     
@@ -37,11 +39,11 @@ def application(environ, resp):
         github_signature   = environ.get('X-Hub-Signature')
         
         
-        sourcepath  = os.environ.get('PULLICAN_SOURCE_PATH')
-        contentpath = os.environ.get('PULLICAN_CONTENT_PATH',os.path.join([sourcepath,'content']))
-        themepath   = os.environ.get('PULLICAN_THEME_PATH',os.path.join([sourcepath,'theme']))
-        outputpath  = os.environ.get('PULLICAN_OUTPUT_PATH','/var/www/html')
-        signature   = os.environ.get('PULLICAN_SIGNATURE')
+        sourcepath  = environ.get('PULLICAN_SOURCE_PATH')
+        contentpath = environ.get('PULLICAN_CONTENT_PATH',os.path.join([sourcepath,'content']))
+        themepath   = environ.get('PULLICAN_THEME_PATH',os.path.join([sourcepath,'theme']))
+        outputpath  = environ.get('PULLICAN_OUTPUT_PATH','/var/www/html')
+        signature   = environ.get('PULLICAN_SIGNATURE')
         
         
         if not sourcepath:
@@ -72,7 +74,6 @@ def application(environ, resp):
         if txt != '':
             logger.error(txt)
             return txt + '\n'
-        
         
         
         # Process the content with pelican
